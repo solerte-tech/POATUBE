@@ -1,49 +1,51 @@
-# POATUBE
+# POATUBE (GitHub Pages + Supabase)
 
-Plataforma de vídeos em que qualquer pessoa cria uma conta e publica os seus próprios vídeos.
+Site de vídeos em que qualquer pessoa cria uma conta e publica os próprios vídeos.
+O site é estático e fica no **GitHub Pages**; login, banco de dados e vídeos ficam no **Supabase**. Não precisa de servidor.
 
-## O que já funciona
-- Cadastro e login (senha com scrypt, sessão em cookie assinado)
-- Upload real de vídeo (MP4, WebM, OGG, MOV) com barra de progresso, miniatura automática ou enviada
-- Player com busca de trecho, visualizações, curtidas, comentários, inscrições e páginas de canal
-- Botão **Baixar** nos vídeos cujo autor permitiu o download
-- Excluir os próprios vídeos e comentários, denunciar vídeos
-- Busca, categorias, Em alta, Inscrições, tema claro/escuro, layout para celular
+## Passo a passo
 
-## Rodar no seu computador
-Requer Node.js 18 ou superior.
+### 1. Criar o projeto no Supabase
+1. Crie uma conta gratuita em https://supabase.com e clique em **New project**.
+2. Abra **SQL Editor**, clique em **New query**, cole todo o conteúdo de `supabase.sql` e clique em **Run**.
+3. Em **Project Settings > API**, copie a **Project URL** e a chave **anon public**.
 
-```bash
-npm install
-npm start
-```
-Abra http://localhost:3000. Os dados ficam na pasta `data/` (banco `db.json` e vídeos em `uploads/`).
+### 2. Configurar o site
+Abra `config.js` e troque os dois valores:
 
-## Variáveis de ambiente
-
-- `PORT` (padrão `3000`): porta do servidor.
-- `MAX_MB` (padrão `500`): tamanho máximo de cada vídeo, em MB.
-- `DATA_DIR` (padrão `./data`): pasta onde ficam o banco e os vídeos.
-- `SECRET` (padrão gerado em `data/secret`): chave usada para assinar as sessões.
-- `ADMIN_EMAIL` (padrão vazio): esta conta pode excluir qualquer vídeo ou comentário.
-
-Exemplo:
-
-```bash
-PORT=8080 MAX_MB=200 ADMIN_EMAIL=voce@exemplo.com npm start
+```js
+window.POATUBE_CONFIG = {
+  url: "https://abcdefgh.supabase.co",
+  key: "sua-chave-anon-publica",
+  maxMB: 50
+};
 ```
 
-## Publicar no GitHub
+A chave `anon` é pública por design. A segurança vem das regras (RLS) criadas pelo `supabase.sql`.
+
+### 3. Publicar no GitHub Pages
 ```bash
 git init && git add . && git commit -m "POATUBE"
 git branch -M main
 git remote add origin https://github.com/SEU-USUARIO/poatube.git
 git push -u origin main
 ```
-O GitHub Pages só hospeda páginas estáticas e **não roda o servidor**. Para colocar o POATUBE no ar, use um serviço que execute Node com disco persistente (Render, Railway, Fly.io ou uma VPS). Há um `Dockerfile` pronto; monte um volume em `/data`.
+No GitHub, abra **Settings > Pages**, escolha **Deploy from a branch**, branch `main`, pasta `/ (root)` e salve. Em alguns minutos o site abre em `https://SEU-USUARIO.github.io/poatube/`.
 
-## Antes de abrir ao público
-- Use HTTPS (os cookies já são `HttpOnly` e `SameSite=Lax`).
-- Defina `ADMIN_EMAIL` e revise as denúncias (ficam em `reports` no `db.json`).
-- Publique termos de uso e política de privacidade (LGPD) e tenha um canal para retirada de conteúdo que viole direitos autorais.
-- Para muitos usuários, troque o JSON por um banco (SQLite/Postgres) e os vídeos por armazenamento de objetos (S3/R2), e adicione limite de requisições.
+### 4. Ajustar o login
+No Supabase, em **Authentication > URL Configuration**, coloque o endereço do seu site em **Site URL**.
+Em **Authentication > Providers > Email**, você pode desativar **Confirm email** para que novas contas entrem sem confirmar o e-mail (útil para testes).
+
+## Moderação
+Para tornar uma conta administradora (pode excluir qualquer vídeo ou comentário e ler as denúncias), rode no SQL Editor:
+
+```sql
+update public.profiles set is_admin = true where id = (select id from auth.users where email = 'voce@exemplo.com');
+```
+As denúncias ficam na tabela `reports` (Table Editor).
+
+## Limites a conhecer
+- O arquivo do vídeo é limitado a 50 MB (valor definido em `supabase.sql` e em `config.js`). O plano gratuito do Supabase tem limites de armazenamento e de tráfego; confira os valores atuais no painel deles.
+- O envio não mostra barra de progresso; a página avisa "Enviando…" até terminar.
+- O contador de visualizações conta cada abertura da página do vídeo.
+- Antes de abrir ao público, publique termos de uso e política de privacidade (LGPD) e tenha um canal para retirada de conteúdo que viole direitos autorais.
