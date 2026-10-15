@@ -20,13 +20,18 @@ npm start
 Abra http://localhost:3000. Os dados ficam na pasta `data/` (banco `db.json` e vídeos em `uploads/`).
 
 ## Variáveis de ambiente
-| Variável | Padrão | Função |
-|---|---|---|
-| `PORT` | 3000 | Porta do servidor |
-| `MAX_MB` | 500 | Tamanho máximo por vídeo |
-| `DATA_DIR` | ./data | Onde ficam banco e vídeos |
-| `SECRET` | gerado em `data/secret` | Chave das sessões |
-| `ADMIN_EMAIL` | vazio | Esta conta pode excluir qualquer vídeo ou comentário |
+
+- `PORT` (padrão `3000`): porta do servidor.
+- `MAX_MB` (padrão `500`): tamanho máximo de cada vídeo, em MB.
+- `DATA_DIR` (padrão `./data`): pasta onde ficam o banco e os vídeos.
+- `SECRET` (padrão gerado em `data/secret`): chave usada para assinar as sessões.
+- `ADMIN_EMAIL` (padrão vazio): esta conta pode excluir qualquer vídeo ou comentário.
+
+Exemplo:
+
+```bash
+PORT=8080 MAX_MB=200 ADMIN_EMAIL=voce@exemplo.com npm start
+```
 
 ## Publicar no GitHub
 ```bash
